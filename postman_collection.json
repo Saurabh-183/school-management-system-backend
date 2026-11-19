@@ -1,0 +1,403 @@
+{
+  "info": {
+    "_postman_id": "c71a396e-57b1-4f11-8be3-9118f6d72491",
+    "name": "Teacher Session Booking API (with RBAC & Aggregations)",
+    "description": "Comprehensive Postman collection for the Teacher Session Booking Platform REST API.\nTech Stack: Node.js, TypeScript, Express.js, MongoDB, Mongoose, JWT Auth & RBAC.\nIncludes all 6 mandatory assignment endpoints with MongoDB Aggregation Pipelines.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "teacherId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "sessionId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "dateTimestamp",
+      "value": "1732060800000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "0. Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        },
+        "description": "Check if API server is running and healthy."
+      },
+      "response": []
+    },
+    {
+      "name": "Auth - 1. Login (Student: Saurabh Agnihotri)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "const json = pm.response.json();",
+              "if (json.success && json.data) {",
+              "    pm.collectionVariables.set('accessToken', json.data.accessToken);",
+              "    pm.collectionVariables.set('userId', json.data.user._id);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"saurabh.agnihotri@example.com\",\n  \"password\": \"Password@123\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "login"]
+        },
+        "description": "Authenticate user, returns JWT accessToken and user object with role."
+      },
+      "response": []
+    },
+    {
+      "name": "Auth - 2. Login (Teacher: Abhishek Singh)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "const json = pm.response.json();",
+              "if (json.success && json.data) {",
+              "    pm.collectionVariables.set('accessToken', json.data.accessToken);",
+              "    if (json.data.user.teacherId) {",
+              "        pm.collectionVariables.set('teacherId', json.data.user.teacherId);",
+              "    }",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"abhishek.singh@example.com\",\n  \"password\": \"Password@123\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "login"]
+        },
+        "description": "Authenticate as a teacher to schedule availability slots and complete sessions."
+      },
+      "response": []
+    },
+    {
+      "name": "Auth - 3. Current User Profile",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/auth/me",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "me"]
+        },
+        "description": "Get current authenticated profile using Bearer JWT token."
+      },
+      "response": []
+    },
+    {
+      "name": "Setup - Create Teacher",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const json = pm.response.json();",
+              "if (json.success && json.data) {",
+              "    pm.collectionVariables.set('teacherId', json.data._id);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Abhishek Singh\",\n  \"email\": \"abhishek.singh@example.com\",\n  \"specialization\": \"Full Stack Web Development & Node.js\",\n  \"experience\": 8\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/teachers",
+          "host": ["{{baseUrl}}"],
+          "path": ["teachers"]
+        },
+        "description": "Helper endpoint to create a teacher so sessions can be scheduled."
+      },
+      "response": []
+    },
+    {
+      "name": "API 1 - Create User",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "const json = pm.response.json();",
+              "if (json.success && json.data) {",
+              "    pm.collectionVariables.set('userId', json.data._id);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Anjali Verma\",\n  \"email\": \"anjali.verma_{{$timestamp}}@example.com\",\n  \"phone\": \"+919876543211\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/users",
+          "host": ["{{baseUrl}}"],
+          "path": ["users"]
+        },
+        "description": "Create a new student user. Email must be unique."
+      },
+      "response": []
+    },
+    {
+      "name": "API 2 - Create Session",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "const json = pm.response.json();",
+              "if (json.success && json.data) {",
+              "    pm.collectionVariables.set('sessionId', json.data._id);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"teacherId\": \"{{teacherId}}\",\n  \"startTime\": \"2026-11-20T10:00:00.000Z\",\n  \"endTime\": \"2026-11-20T11:00:00.000Z\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/sessions",
+          "host": ["{{baseUrl}}"],
+          "path": ["sessions"]
+        },
+        "description": "Create a new session for a teacher. Default status is AVAILABLE. Validates teacher exists and endTime > startTime."
+      },
+      "response": []
+    },
+    {
+      "name": "API 3 - Available Sessions for Booking (Aggregation)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/sessions/available?dateTimestamp={{dateTimestamp}}&page=1&limit=10",
+          "host": ["{{baseUrl}}"],
+          "path": ["sessions", "available"],
+          "query": [
+            {
+              "key": "dateTimestamp",
+              "value": "{{dateTimestamp}}",
+              "description": "Timestamp (ms/seconds) or ISO date for target day"
+            },
+            {
+              "key": "page",
+              "value": "1",
+              "description": "Page number (1-indexed)"
+            },
+            {
+              "key": "limit",
+              "value": "10",
+              "description": "Items per page"
+            },
+            {
+              "key": "search",
+              "value": "Abhishek",
+              "disabled": true,
+              "description": "Optional search by teacher name or subject"
+            }
+          ]
+        },
+        "description": "Mandatory MongoDB Aggregation Pipeline: returns AVAILABLE sessions matching the target date with populated teacher details."
+      },
+      "response": []
+    },
+    {
+      "name": "API 4 - Book Session",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"{{userId}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/sessions/{{sessionId}}/book",
+          "host": ["{{baseUrl}}"],
+          "path": ["sessions", "{{sessionId}}", "book"]
+        },
+        "description": "Books an AVAILABLE session. Atomic update changes status to BOOKED and associates userId."
+      },
+      "response": []
+    },
+    {
+      "name": "API 5 - Mark Session Complete",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/sessions/{{sessionId}}/complete",
+          "host": ["{{baseUrl}}"],
+          "path": ["sessions", "{{sessionId}}", "complete"]
+        },
+        "description": "Marks a BOOKED session as COMPLETED and sets the completedAt timestamp."
+      },
+      "response": []
+    },
+    {
+      "name": "API 6 - User Session List (Aggregation $facet)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/users/{{userId}}/sessions",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", "{{userId}}", "sessions"]
+        },
+        "description": "Mandatory MongoDB Aggregation Pipeline: returns sessions for user separated into upcomingSessions and completedSessions using $facet."
+      },
+      "response": []
+    }
+  ]
+}
