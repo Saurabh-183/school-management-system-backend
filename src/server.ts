@@ -8,9 +8,9 @@ const startServer = async () => {
 
   const app = createApp();
 
-  const server = app.listen(config.port, () => {
+  const server = app.listen(config.port, '0.0.0.0', () => {
     console.log(`[Server] Teacher Booking REST API running on port ${config.port} in ${config.nodeEnv} mode`);
-    console.log(`[Server] Health check: http://localhost:${config.port}/health`);
+    console.log(`[Server] Health check: http://0.0.0.0:${config.port}/health`);
   });
 
   const gracefulShutdown = (signal: string) => {
