@@ -8,6 +8,7 @@ export interface TokenPayload {
   fullName: string;
   role: Role;
   teacherId?: string | null;
+  sessionId?: string;
 }
 
 export const signAccessToken = (payload: TokenPayload): string => {

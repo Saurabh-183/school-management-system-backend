@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { verifyAccessToken, TokenPayload } from '../utils/token.js';
 import { AppError } from '../errors/app-error.js';
 import { Role } from '../constants/index.js';
+import { User } from '../models/user.model.js';
 
 // Extend Express Request interface to include user
 declare global {
@@ -12,7 +13,7 @@ declare global {
   }
 }
 
-export const authenticateUser = (req: Request, _res: Response, next: NextFunction) => {
+export const authenticateUser = async (req: Request, _res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return next(new AppError('Authentication required: Missing or invalid Bearer token', 401));
@@ -21,6 +22,21 @@ export const authenticateUser = (req: Request, _res: Response, next: NextFunctio
   const token = authHeader.split(' ')[1];
   try {
     const decoded = verifyAccessToken(token);
+
+    // Single Active Session Verification:
+    // If token has a sessionId, verify it matches the user's active session in MongoDB
+    if (decoded.sessionId) {
+      const dbUser = await User.findById(decoded.userId).select('currentSessionId');
+      if (dbUser && dbUser.currentSessionId && dbUser.currentSessionId !== decoded.sessionId) {
+        return next(
+          new AppError(
+            'Session Terminated: This account has been logged in from another location/device. Concurrent sessions are disabled for security.',
+            401
+          )
+        );
+      }
+    }
+
     req.user = decoded;
     next();
   } catch (err: any) {

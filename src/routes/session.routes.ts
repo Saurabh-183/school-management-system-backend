@@ -63,7 +63,7 @@ router.patch(
   '/:id/complete',
   optionalAuth,
   (req, res, next) => {
-    if (req.user && !([ROLES.TEACHER, ROLES.ADMIN] as string[]).includes(req.user.role)) {
+    if (req.user && !([ROLES.TEACHER, ROLES.ADMIN, ROLES.SUPER_ADMIN] as string[]).includes(req.user.role)) {
       return res.status(403).json({
         success: false,
         message: `Forbidden: Only TEACHER or ADMIN can complete sessions. Current role: '${req.user.role}'`,
@@ -73,6 +73,61 @@ router.patch(
   },
   validateRequest({ params: completeSessionParamSchema }),
   SessionController.completeSession
+);
+
+// Learning Resources: Get Resources (Notes, Videos, Documents)
+router.get(
+  '/:id/resources',
+  optionalAuth,
+  SessionController.getSessionResources
+);
+
+// Learning Resources: Add Lecture Note (Teacher / Admin)
+router.post(
+  '/:id/notes',
+  optionalAuth,
+  (req, res, next) => {
+    if (req.user && !([ROLES.TEACHER, ROLES.ADMIN, ROLES.SUPER_ADMIN] as string[]).includes(req.user.role)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Forbidden: Only Teachers or Admins can upload lecture notes.',
+      });
+    }
+    next();
+  },
+  SessionController.addLectureNote
+);
+
+// Learning Resources: Add Video Lecture (Teacher / Admin)
+router.post(
+  '/:id/videos',
+  optionalAuth,
+  (req, res, next) => {
+    if (req.user && !([ROLES.TEACHER, ROLES.ADMIN, ROLES.SUPER_ADMIN] as string[]).includes(req.user.role)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Forbidden: Only Teachers or Admins can upload video lectures.',
+      });
+    }
+    next();
+  },
+  SessionController.addVideoLecture
+);
+
+// Learning Resources: Upload Subject Document (Teacher / Admin)
+router.post(
+  '/:id/documents',
+  optionalAuth,
+  (req, res, next) => {
+    if (req.user && !([ROLES.TEACHER, ROLES.ADMIN, ROLES.SUPER_ADMIN] as string[]).includes(req.user.role)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Forbidden: Only Teachers or Admins can upload subject documents.',
+      });
+    }
+    next();
+  },
+  SessionController.addSubjectDocument
 );
 
 export default router;

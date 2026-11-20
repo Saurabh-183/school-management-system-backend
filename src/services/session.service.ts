@@ -274,4 +274,82 @@ export class SessionService {
 
     return updatedSession;
   }
+
+  /**
+   * Add a lecture note to a session
+   */
+  static async addLectureNote(sessionId: string, note: { title: string; content: string; authorName?: string }) {
+    const session = await Session.findById(sessionId);
+    if (!session) {
+      throw AppError.notFound(`Session not found with ID: ${sessionId}`);
+    }
+    session.notes.push({
+      title: note.title,
+      content: note.content,
+      authorName: note.authorName || 'Assigned Mentor',
+      createdAt: new Date(),
+    });
+    await session.save();
+    return session;
+  }
+
+  /**
+   * Add a video lecture to a session
+   */
+  static async addVideoLecture(sessionId: string, video: { title: string; videoUrl: string; duration?: string; description?: string }) {
+    const session = await Session.findById(sessionId);
+    if (!session) {
+      throw AppError.notFound(`Session not found with ID: ${sessionId}`);
+    }
+    session.videoLectures.push({
+      title: video.title,
+      videoUrl: video.videoUrl,
+      duration: video.duration || '45 mins',
+      description: video.description || '',
+      uploadedAt: new Date(),
+    });
+    await session.save();
+    return session;
+  }
+
+  /**
+   * Add a subject document to a session
+   */
+  static async addSubjectDocument(sessionId: string, doc: { title: string; fileUrl: string; fileType?: string; fileSize?: string }) {
+    const session = await Session.findById(sessionId);
+    if (!session) {
+      throw AppError.notFound(`Session not found with ID: ${sessionId}`);
+    }
+    session.documents.push({
+      title: doc.title,
+      fileUrl: doc.fileUrl,
+      fileType: doc.fileType || 'PDF',
+      fileSize: doc.fileSize || '2.4 MB',
+      uploadedAt: new Date(),
+    });
+    await session.save();
+    return session;
+  }
+
+  /**
+   * Get all learning resources for a session
+   */
+  static async getSessionResources(sessionId: string) {
+    const session = await Session.findById(sessionId)
+      .populate('teacherId', 'fullName email specialization')
+      .populate('userId', 'fullName email');
+    if (!session) {
+      throw AppError.notFound(`Session not found with ID: ${sessionId}`);
+    }
+    return {
+      sessionId: session._id,
+      teacher: session.teacherId,
+      user: session.userId,
+      startTime: session.startTime,
+      endTime: session.endTime,
+      notes: session.notes || [],
+      videoLectures: session.videoLectures || [],
+      documents: session.documents || [],
+    };
+  }
 }

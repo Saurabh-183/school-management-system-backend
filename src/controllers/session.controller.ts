@@ -56,4 +56,55 @@ export class SessionController {
       ApiResponse.success('Session marked as completed successfully', session)
     );
   });
+
+  /**
+   * Learning Resources: Add Lecture Note
+   * POST /sessions/:id/notes
+   */
+  static addLectureNote = asyncHandler(async (req: Request, res: Response) => {
+    const id = req.params.id as string;
+    const session = await SessionService.addLectureNote(id, {
+      ...req.body,
+      authorName: req.user?.fullName || req.body.authorName,
+    });
+    res.status(HTTP_STATUS.OK).json(
+      ApiResponse.success('Lecture note added successfully', session)
+    );
+  });
+
+  /**
+   * Learning Resources: Add Video Lecture
+   * POST /sessions/:id/videos
+   */
+  static addVideoLecture = asyncHandler(async (req: Request, res: Response) => {
+    const id = req.params.id as string;
+    const session = await SessionService.addVideoLecture(id, req.body);
+    res.status(HTTP_STATUS.OK).json(
+      ApiResponse.success('Video lecture attached successfully', session)
+    );
+  });
+
+  /**
+   * Learning Resources: Add Subject Document
+   * POST /sessions/:id/documents
+   */
+  static addSubjectDocument = asyncHandler(async (req: Request, res: Response) => {
+    const id = req.params.id as string;
+    const session = await SessionService.addSubjectDocument(id, req.body);
+    res.status(HTTP_STATUS.OK).json(
+      ApiResponse.success('Subject document uploaded successfully', session)
+    );
+  });
+
+  /**
+   * Learning Resources: Get All Resources for a Session
+   * GET /sessions/:id/resources
+   */
+  static getSessionResources = asyncHandler(async (req: Request, res: Response) => {
+    const id = req.params.id as string;
+    const resources = await SessionService.getSessionResources(id);
+    res.status(HTTP_STATUS.OK).json(
+      ApiResponse.success('Learning resources retrieved successfully', resources)
+    );
+  });
 }

@@ -191,6 +191,32 @@ export const runSeed = async (forceClear = false): Promise<SeedResult> => {
       endTime: today10am,
       status: SESSION_STATUS.COMPLETED,
       completedAt: new Date(today10am),
+      notes: [
+        {
+          title: 'Advanced Data Structures: Binary Search Trees & AVL Rotations',
+          content: '### Core Academic Summary:\n1. **Binary Search Tree Property**: For every node $X$, all keys in the left subtree are $< X$, and all keys in the right subtree are $> X$.\n2. **AVL Rebalancing**: Calculated via Balance Factor `BF = height(left) - height(right)`. If `|BF| > 1`, invoke Single (LL, RR) or Double (LR, RL) rotations.\n3. **Practical Exam Takeaways**: In-order traversal of a BST yields elements in monotonically increasing sorted order.',
+          authorName: 'Abhishek Singh',
+          createdAt: new Date(today10am),
+        },
+      ],
+      videoLectures: [
+        {
+          title: 'Class 12-A Masterclass: Tree Traversals & Recursion Demystified',
+          videoUrl: 'https://www.youtube-nocookie.com/embed/gcULXE7ViZw',
+          duration: '48 mins',
+          description: 'Live whiteboard lecture recording covering recursive stack traces, rotation mechanics, and time complexities.',
+          uploadedAt: new Date(today9am),
+        },
+      ],
+      documents: [
+        {
+          title: 'Class_12A_Data_Structures_Lecture_Notes_Unit_3.pdf',
+          fileUrl: 'https://arxiv.org/pdf/math/0211159.pdf',
+          fileType: 'PDF',
+          fileSize: '2.8 MB',
+          uploadedAt: new Date(today9am),
+        },
+      ],
     },
     {
       teacherId: teachers[1]._id, // Manas Tiwari
@@ -199,6 +225,32 @@ export const runSeed = async (forceClear = false): Promise<SeedResult> => {
       endTime: today12pm,
       status: SESSION_STATUS.BOOKED,
       completedAt: null,
+      notes: [
+        {
+          title: 'System Architecture: High-Throughput Node.js Microservices',
+          content: '### Session Highlights:\n- Event loop phases: Timers, Pending I/O callbacks, Idle/Prepare, Poll, Check (setImmediate), Close.\n- Microtask queues: `process.nextTick` executes before Promise microtasks.\n- Clustering & horizontal scaling with PM2 and containerization.',
+          authorName: 'Manas Tiwari',
+          createdAt: new Date(today11am),
+        },
+      ],
+      videoLectures: [
+        {
+          title: 'System Design Lecture: Distributed Systems & Caching Layers',
+          videoUrl: 'https://www.youtube-nocookie.com/embed/bBTPZ946NnI',
+          duration: '55 mins',
+          description: 'Deep dive into Redis caching strategies, Write-through vs Write-back, and CAP theorem trade-offs.',
+          uploadedAt: new Date(today11am),
+        },
+      ],
+      documents: [
+        {
+          title: 'Distributed_Systems_Architecture_Blueprint_v2.pdf',
+          fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+          fileType: 'PDF',
+          fileSize: '4.1 MB',
+          uploadedAt: new Date(today11am),
+        },
+      ],
     },
     {
       teacherId: teachers[0]._id, // Abhishek Singh
@@ -207,6 +259,32 @@ export const runSeed = async (forceClear = false): Promise<SeedResult> => {
       endTime: today3pm,
       status: SESSION_STATUS.AVAILABLE,
       completedAt: null,
+      notes: [
+        {
+          title: 'Syllabus Prep Notes: Dynamic Programming & Memoization',
+          content: '### Pre-Session Reading:\n- Optimal substructure and overlapping subproblems.\n- Top-down Memoization vs Bottom-up Tabulation.\n- Classic problems: 0/1 Knapsack, Longest Common Subsequence (LCS).',
+          authorName: 'Abhishek Singh',
+          createdAt: new Date(today2pm),
+        },
+      ],
+      videoLectures: [
+        {
+          title: 'Introductory Video: Approaching Dynamic Programming Problems',
+          videoUrl: 'https://www.youtube-nocookie.com/embed/oBt53YbR9Kk',
+          duration: '42 mins',
+          description: 'Step-by-step framework to identify state variables and recurrence relations.',
+          uploadedAt: new Date(today2pm),
+        },
+      ],
+      documents: [
+        {
+          title: 'Dynamic_Programming_Formula_Cheatsheet.pdf',
+          fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+          fileType: 'PDF',
+          fileSize: '1.9 MB',
+          uploadedAt: new Date(today2pm),
+        },
+      ],
     },
     {
       teacherId: teachers[1]._id, // Manas Tiwari
@@ -215,6 +293,32 @@ export const runSeed = async (forceClear = false): Promise<SeedResult> => {
       endTime: today5pm,
       status: SESSION_STATUS.AVAILABLE,
       completedAt: null,
+      notes: [
+        {
+          title: 'Database Architecture: MongoDB Indexing & Query Optimization',
+          content: '### Key Concepts:\n- Single-field vs Compound Indexes with Equality-Sort-Range (ESR) rule.\n- Execution plans: IXSCAN vs COLLSCAN analysis using `explain("executionStats")`.\n- Aggregation Pipeline stages: `$match`, `$lookup`, `$project`, `$facet`.',
+          authorName: 'Manas Tiwari',
+          createdAt: new Date(today4pm),
+        },
+      ],
+      videoLectures: [
+        {
+          title: 'Architecture Lab: Index Optimization & Profiling in MongoDB',
+          videoUrl: 'https://www.youtube-nocookie.com/embed/ofme2o29ngU',
+          duration: '60 mins',
+          description: 'Hands-on terminal session demonstrating query plan debugging and compound index prefix rules.',
+          uploadedAt: new Date(today4pm),
+        },
+      ],
+      documents: [
+        {
+          title: 'MongoDB_Query_Optimization_Field_Guide.pdf',
+          fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+          fileType: 'PDF',
+          fileSize: '3.6 MB',
+          uploadedAt: new Date(today4pm),
+        },
+      ],
     },
     {
       teacherId: teachers[2]._id, // Saurabh Agnihotri

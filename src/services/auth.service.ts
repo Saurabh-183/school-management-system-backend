@@ -20,12 +20,18 @@ export class AuthService {
       throw new AppError('Invalid email or password', 401);
     }
 
+    // Generate unique session ID to enforce single concurrent login
+    const sessionId = Math.random().toString(36).substring(2) + Date.now().toString(36);
+    user.currentSessionId = sessionId;
+    await user.save();
+
     const tokenPayload = {
       userId: user._id.toString(),
       email: user.email,
       fullName: user.fullName,
       role: user.role,
       teacherId: user.teacherId ? user.teacherId.toString() : null,
+      sessionId,
     };
 
     const accessToken = signAccessToken(tokenPayload);
@@ -85,12 +91,17 @@ export class AuthService {
       classGrade: input.classGrade?.trim() || 'Class 12-A',
     });
 
+    const sessionId = Math.random().toString(36).substring(2) + Date.now().toString(36);
+    newUser.currentSessionId = sessionId;
+    await newUser.save();
+
     const tokenPayload = {
       userId: newUser._id.toString(),
       email: newUser.email,
       fullName: newUser.fullName,
       role: newUser.role,
       teacherId: newUser.teacherId ? newUser.teacherId.toString() : null,
+      sessionId,
     };
 
     const accessToken = signAccessToken(tokenPayload);

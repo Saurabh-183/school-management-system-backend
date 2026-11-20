@@ -11,6 +11,7 @@ export interface IUser extends Document {
   teacherId?: Types.ObjectId | null;
   organization?: string;
   classGrade?: string;
+  currentSessionId?: string | null;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -67,6 +68,10 @@ const userSchema = new Schema<IUser>(
       type: String,
       default: 'Class 12-A',
       trim: true,
+    },
+    currentSessionId: {
+      type: String,
+      default: null,
     },
   },
   {
