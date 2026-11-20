@@ -1,6 +1,7 @@
 import { User } from '../models/user.model.js';
 import { Teacher } from '../models/teacher.model.js';
 import { Session } from '../models/session.model.js';
+import { Notification } from '../models/notification.model.js';
 import { SESSION_STATUS, ROLES } from '../constants/index.js';
 
 export interface SeedResult {
@@ -53,6 +54,7 @@ export const runSeed = async (forceClear = false): Promise<SeedResult> => {
     User.deleteMany({}),
     Teacher.deleteMany({}),
     Session.deleteMany({}),
+    Notification.deleteMany({}),
   ]);
 
   const schoolOrg = 'Delhi Public School (DPS Campus)';
@@ -438,6 +440,190 @@ export const runSeed = async (forceClear = false): Promise<SeedResult> => {
       endTime: tomorrow11am,
       status: SESSION_STATUS.AVAILABLE,
       completedAt: null,
+    },
+  ]);
+
+  // 4. Create Contextual RBAC Notifications
+  await Notification.create([
+    // Student 1 (Saurabh Agnihotri)
+    {
+      recipientId: users[4]._id,
+      senderId: users[2]._id,
+      senderName: 'Abhishek Singh (Teacher)',
+      senderRole: 'TEACHER',
+      title: '📹 New Video Lecture: Tree Traversals & Recursion Demystified',
+      message: 'Mentor Abhishek Singh uploaded a 48-min whiteboard lecture on Tree Traversals for Class 12-A. Click to start in-app video playback.',
+      type: 'ACADEMIC_RESOURCE',
+      relatedSessionId: sessions[0]._id,
+      relatedResourceType: 'video',
+      targetTab: 'videos',
+      isRead: false,
+      createdAt: new Date(Date.now() - 1000 * 60 * 18), // 18 mins ago
+    },
+    {
+      recipientId: users[4]._id,
+      senderId: users[2]._id,
+      senderName: 'Abhishek Singh (Teacher)',
+      senderRole: 'TEACHER',
+      title: '📑 New Subject Document: Dynamic Programming Formula Cheatsheet',
+      message: 'Teacher Abhishek Singh attached the official DP recurrence relations reference cheatsheet. Click to review in the in-app document viewer.',
+      type: 'ACADEMIC_RESOURCE',
+      relatedSessionId: sessions[2]._id,
+      relatedResourceType: 'document',
+      targetTab: 'documents',
+      isRead: false,
+      createdAt: new Date(Date.now() - 1000 * 60 * 45), // 45 mins ago
+    },
+    {
+      recipientId: users[4]._id,
+      senderId: users[3]._id,
+      senderName: 'Manas Tiwari (Teacher)',
+      senderRole: 'TEACHER',
+      title: '📝 New Lecture Notes: High-Throughput Node.js Microservices',
+      message: 'Mentor Manas Tiwari posted detailed study notes on Libuv event loop phases and microtasks priority queues.',
+      type: 'ACADEMIC_RESOURCE',
+      relatedSessionId: sessions[1]._id,
+      relatedResourceType: 'notes',
+      targetTab: 'notes',
+      isRead: false,
+      createdAt: new Date(Date.now() - 1000 * 60 * 120), // 2 hours ago
+    },
+    {
+      recipientId: users[4]._id,
+      senderId: users[3]._id,
+      senderName: 'Manas Tiwari (Teacher)',
+      senderRole: 'TEACHER',
+      title: '✅ Session Reservation Confirmed: System Architecture',
+      message: 'Your mentorship slot with Manas Tiwari on High-Throughput Node.js is confirmed for 11:00 AM UTC.',
+      type: 'SESSION_BOOKED',
+      relatedSessionId: sessions[1]._id,
+      targetTab: 'available',
+      isRead: true,
+      readAt: new Date(Date.now() - 1000 * 60 * 100),
+      createdAt: new Date(Date.now() - 1000 * 60 * 140),
+    },
+
+    // Student 2 (Anjali Verma)
+    {
+      recipientId: users[5]._id,
+      senderId: users[2]._id,
+      senderName: 'Abhishek Singh (Teacher)',
+      senderRole: 'TEACHER',
+      title: '📹 New Video Lecture: Tree Traversals & Recursion Demystified',
+      message: 'Mentor Abhishek Singh uploaded a 48-min whiteboard lecture on Tree Traversals for Class 12-A.',
+      type: 'ACADEMIC_RESOURCE',
+      relatedSessionId: sessions[0]._id,
+      relatedResourceType: 'video',
+      targetTab: 'videos',
+      isRead: false,
+      createdAt: new Date(Date.now() - 1000 * 60 * 20),
+    },
+    {
+      recipientId: users[5]._id,
+      senderId: users[2]._id,
+      senderName: 'Abhishek Singh (Teacher)',
+      senderRole: 'TEACHER',
+      title: '📑 New Subject Document: Dynamic Programming Formula Cheatsheet',
+      message: 'Teacher Abhishek Singh attached the official DP recurrence relations reference cheatsheet. Click to view.',
+      type: 'ACADEMIC_RESOURCE',
+      relatedSessionId: sessions[2]._id,
+      relatedResourceType: 'document',
+      targetTab: 'documents',
+      isRead: false,
+      createdAt: new Date(Date.now() - 1000 * 60 * 50),
+    },
+    {
+      recipientId: users[5]._id,
+      senderId: users[1]._id,
+      senderName: 'Prince Agnihotri (Admin)',
+      senderRole: 'ADMIN',
+      title: '🎓 Class 12-A Academic Enrollment Confirmed',
+      message: 'Welcome to Mentora! Administration has enrolled you in Class 12-A under Delhi Public School (DPS Campus).',
+      type: 'ADMIN_UPDATE',
+      targetTab: 'available',
+      isRead: true,
+      readAt: new Date(Date.now() - 1000 * 60 * 200),
+      createdAt: new Date(Date.now() - 1000 * 60 * 240),
+    },
+
+    // Teacher 1 (Abhishek Singh)
+    {
+      recipientId: users[2]._id,
+      senderId: users[1]._id,
+      senderName: 'Prince Agnihotri (Admin)',
+      senderRole: 'ADMIN',
+      title: '🏛️ Admin Update: Teaching Allocation Confirmed',
+      message: 'School Administrator Prince Agnihotri allocated Class 11-A and Class 12-A Web Development teaching modules to your profile.',
+      type: 'ADMIN_UPDATE',
+      targetTab: 'schedule',
+      isRead: false,
+      createdAt: new Date(Date.now() - 1000 * 60 * 30),
+    },
+    {
+      recipientId: users[2]._id,
+      senderId: users[0]._id,
+      senderName: 'Saurabh Agnihotri (Super Admin)',
+      senderRole: 'SUPER_ADMIN',
+      title: '🏛️ Academic Resource Upload Permissions Verified',
+      message: 'Super Admin Council has enabled drag-and-drop lecture recordings (up to 200MB) and document viewer access for your faculty account.',
+      type: 'ADMIN_UPDATE',
+      targetTab: 'schedule',
+      isRead: false,
+      createdAt: new Date(Date.now() - 1000 * 60 * 90),
+    },
+
+    // Teacher 2 (Manas Tiwari)
+    {
+      recipientId: users[3]._id,
+      senderId: users[1]._id,
+      senderName: 'Prince Agnihotri (Admin)',
+      senderRole: 'ADMIN',
+      title: '🏛️ Admin Update: Faculty Curriculum Assigned',
+      message: 'Admin Prince Agnihotri assigned Data Structures & Algorithms (Class 10-B, Class 12-A) to your teaching schedule.',
+      type: 'ADMIN_UPDATE',
+      targetTab: 'schedule',
+      isRead: false,
+      createdAt: new Date(Date.now() - 1000 * 60 * 40),
+    },
+    {
+      recipientId: users[3]._id,
+      senderId: users[4]._id,
+      senderName: 'Saurabh Agnihotri (Student)',
+      senderRole: 'STUDENT',
+      title: '📅 New Session Booking: Saurabh Agnihotri',
+      message: 'Student Saurabh Agnihotri booked your upcoming slot: System Architecture & Microservices for 11:00 AM UTC.',
+      type: 'SESSION_BOOKED',
+      relatedSessionId: sessions[1]._id,
+      targetTab: 'schedule',
+      isRead: false,
+      createdAt: new Date(Date.now() - 1000 * 60 * 140),
+    },
+
+    // School Admin (Prince Agnihotri)
+    {
+      recipientId: users[1]._id,
+      senderId: users[0]._id,
+      senderName: 'Saurabh Agnihotri (Super Admin)',
+      senderRole: 'SUPER_ADMIN',
+      title: '🏛️ Organization Authority Verified',
+      message: 'Super Admin Council verified your administrative jurisdiction over Delhi Public School (DPS Campus) faculty & students.',
+      type: 'ADMIN_UPDATE',
+      targetTab: 'teachers',
+      isRead: false,
+      createdAt: new Date(Date.now() - 1000 * 60 * 60),
+    },
+
+    // Super Admin (Saurabh Agnihotri)
+    {
+      recipientId: users[0]._id,
+      senderName: 'System Security Watchdog',
+      senderRole: 'SYSTEM',
+      title: '🛡️ Platform Telemetry & RBAC Audit',
+      message: 'Single-session integrity active, 6 REST API endpoints verified, 4 faculty members registered across 2 organizations.',
+      type: 'SYSTEM',
+      targetTab: 'activity-logs',
+      isRead: false,
+      createdAt: new Date(Date.now() - 1000 * 60 * 10),
     },
   ]);
 

@@ -4,6 +4,7 @@ import userRoutes from './user.routes.js';
 import teacherRoutes from './teacher.routes.js';
 import sessionRoutes from './session.routes.js';
 import adminRoutes from './admin.routes.js';
+import notificationRoutes from './notification.routes.js';
 import { runSeed } from '../services/seed.service.js';
 
 const router = Router();
@@ -38,5 +39,6 @@ router.use('/users', userRoutes);
 router.use('/teachers', teacherRoutes);
 router.use('/sessions', sessionRoutes);
 router.use('/admin', adminRoutes);
+router.use('/notifications', notificationRoutes);
 
 export default router;

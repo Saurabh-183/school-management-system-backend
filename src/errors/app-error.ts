@@ -36,6 +36,10 @@ export class AppError extends Error {
     return new AppError(message, HTTP_STATUS.FORBIDDEN);
   }
 
+  static unauthorized(message = 'Unauthorized') {
+    return new AppError(message, HTTP_STATUS.UNAUTHORIZED);
+  }
+
   static internal(message = 'Internal Server Error') {
     return new AppError(message, HTTP_STATUS.INTERNAL_SERVER_ERROR, undefined, false);
   }

@@ -66,6 +66,7 @@ export class SessionController {
     const session = await SessionService.addLectureNote(id, {
       ...req.body,
       authorName: req.user?.fullName || req.body.authorName,
+      authorUserId: req.user?.userId,
     });
     res.status(HTTP_STATUS.OK).json(
       ApiResponse.success('Lecture note added successfully', session)
@@ -78,7 +79,10 @@ export class SessionController {
    */
   static addVideoLecture = asyncHandler(async (req: Request, res: Response) => {
     const id = req.params.id as string;
-    const session = await SessionService.addVideoLecture(id, req.body);
+    const session = await SessionService.addVideoLecture(id, {
+      ...req.body,
+      authorUserId: req.user?.userId,
+    });
     res.status(HTTP_STATUS.OK).json(
       ApiResponse.success('Video lecture attached successfully', session)
     );
@@ -90,7 +94,10 @@ export class SessionController {
    */
   static addSubjectDocument = asyncHandler(async (req: Request, res: Response) => {
     const id = req.params.id as string;
-    const session = await SessionService.addSubjectDocument(id, req.body);
+    const session = await SessionService.addSubjectDocument(id, {
+      ...req.body,
+      authorUserId: req.user?.userId,
+    });
     res.status(HTTP_STATUS.OK).json(
       ApiResponse.success('Subject document uploaded successfully', session)
     );

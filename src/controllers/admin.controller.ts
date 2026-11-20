@@ -8,6 +8,7 @@ import { HTTP_STATUS, SESSION_STATUS, ROLES } from '../constants/index.js';
 import { asyncHandler } from '../utils/async-handler.js';
 import { AppError } from '../errors/app-error.js';
 import { EmailService } from '../services/email.service.js';
+import { NotificationService } from '../services/notification.service.js';
 
 export class AdminController {
   /**
@@ -179,6 +180,17 @@ export class AdminController {
       isTrial: false,
     }).catch((err) => console.error('Failed to send teacher welcome email:', err));
 
+    // Trigger Notification for the new Teacher
+    NotificationService.notifyTeacherForAdminUpdate({
+      teacherUserId: newUser._id.toString(),
+      adminName: creatorUser?.fullName || 'School Administration',
+      adminUserId: req.user?.userId,
+      adminRole: creatorUser?.role || 'ADMIN',
+      title: 'Faculty Account Provisioned',
+      message: `Your faculty profile for "${teacherProfile.specialization}" was provisioned by ${creatorUser?.fullName || 'Administration'}. You can now publish teaching availability slots and upload course materials.`,
+      targetTab: 'schedule',
+    }).catch((err) => console.error('Failed to dispatch teacher provision notification:', err));
+
     res.status(HTTP_STATUS.CREATED).json(
       ApiResponse.success(`Teacher '${newUser.fullName}' created successfully under facility '${org}'`, {
         _id: newUser._id,
@@ -242,6 +254,18 @@ export class AdminController {
       temporaryPassword: password,
       isTrial: false,
     }).catch((err) => console.error('Failed to send student welcome email:', err));
+
+    // Welcome Notification for Student
+    NotificationService.createNotification({
+      recipientId: newUser._id,
+      senderId: req.user?.userId,
+      senderName: `${creatorUser?.fullName || 'Faculty Mentor'} (${creatorUser?.role || 'TEACHER'})`,
+      senderRole: creatorUser?.role || 'TEACHER',
+      title: '🎓 Welcome to Mentora Learning Platform',
+      message: `Your student profile for ${grade} at ${org} was officially enrolled by ${creatorUser?.fullName}. You can now book mentoring sessions and access study materials.`,
+      type: 'SYSTEM',
+      targetTab: 'available',
+    }).catch((err) => console.error('Failed to dispatch student welcome notification:', err));
 
     res.status(HTTP_STATUS.CREATED).json(
       ApiResponse.success(`Enrolled student '${newUser.fullName}' created under ${creatorUser?.fullName || 'Faculty'}`, {

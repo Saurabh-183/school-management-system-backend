@@ -5,6 +5,7 @@ import { User } from '../models/user.model.js';
 import { AppError } from '../errors/app-error.js';
 import { SESSION_STATUS } from '../constants/index.js';
 import { CreateSessionInput } from '../schemas/session.schema.js';
+import { NotificationService } from './notification.service.js';
 
 export class SessionService {
   /**
@@ -233,6 +234,11 @@ export class SessionService {
       throw AppError.conflict('Session was just booked by another user. Please choose another session.');
     }
 
+    // Trigger Notifications for both Teacher and Student
+    NotificationService.notifyForSessionBooking(sessionId, userId).catch((err) =>
+      console.error('[Notification Trigger Error] Failed to notify for session booking:', err)
+    );
+
     return updatedSession;
   }
 
@@ -272,13 +278,18 @@ export class SessionService {
       .populate('teacherId', 'fullName email specialization experience')
       .populate('userId', 'fullName email phone');
 
+    // Trigger Completion Notification to enrolled student
+    NotificationService.notifyStudentForSessionCompletion(sessionId).catch((err) =>
+      console.error('[Notification Trigger Error] Failed to notify for session completion:', err)
+    );
+
     return updatedSession;
   }
 
   /**
    * Add a lecture note to a session
    */
-  static async addLectureNote(sessionId: string, note: { title: string; content: string; authorName?: string }) {
+  static async addLectureNote(sessionId: string, note: { title: string; content: string; authorName?: string; authorUserId?: string }) {
     const session = await Session.findById(sessionId);
     if (!session) {
       throw AppError.notFound(`Session not found with ID: ${sessionId}`);
@@ -290,13 +301,23 @@ export class SessionService {
       createdAt: new Date(),
     });
     await session.save();
+
+    // Trigger Academic Material Notification to students
+    NotificationService.notifyStudentsForTeacherUpload({
+      sessionId,
+      resourceType: 'notes',
+      resourceTitle: note.title,
+      authorName: note.authorName,
+      authorUserId: note.authorUserId,
+    }).catch((err) => console.error('[Notification Trigger Error] Failed to notify for lecture note:', err));
+
     return session;
   }
 
   /**
    * Add a video lecture to a session
    */
-  static async addVideoLecture(sessionId: string, video: { title: string; videoUrl: string; duration?: string; description?: string }) {
+  static async addVideoLecture(sessionId: string, video: { title: string; videoUrl: string; duration?: string; description?: string; authorUserId?: string }) {
     const session = await Session.findById(sessionId);
     if (!session) {
       throw AppError.notFound(`Session not found with ID: ${sessionId}`);
@@ -309,13 +330,22 @@ export class SessionService {
       uploadedAt: new Date(),
     });
     await session.save();
+
+    // Trigger Video Lecture Notification to students
+    NotificationService.notifyStudentsForTeacherUpload({
+      sessionId,
+      resourceType: 'video',
+      resourceTitle: video.title,
+      authorUserId: video.authorUserId,
+    }).catch((err) => console.error('[Notification Trigger Error] Failed to notify for video lecture:', err));
+
     return session;
   }
 
   /**
    * Add a subject document to a session
    */
-  static async addSubjectDocument(sessionId: string, doc: { title: string; fileUrl: string; fileType?: string; fileSize?: string }) {
+  static async addSubjectDocument(sessionId: string, doc: { title: string; fileUrl: string; fileType?: string; fileSize?: string; authorUserId?: string }) {
     const session = await Session.findById(sessionId);
     if (!session) {
       throw AppError.notFound(`Session not found with ID: ${sessionId}`);
@@ -328,6 +358,15 @@ export class SessionService {
       uploadedAt: new Date(),
     });
     await session.save();
+
+    // Trigger Document Notification to students
+    NotificationService.notifyStudentsForTeacherUpload({
+      sessionId,
+      resourceType: 'document',
+      resourceTitle: doc.title,
+      authorUserId: doc.authorUserId,
+    }).catch((err) => console.error('[Notification Trigger Error] Failed to notify for document:', err));
+
     return session;
   }
 
