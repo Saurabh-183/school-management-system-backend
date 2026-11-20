@@ -2,9 +2,25 @@ import { createApp } from './app.js';
 import { connectDB } from './config/db.js';
 import { config } from './config/env.js';
 import mongoose from 'mongoose';
+import { User } from './models/user.model.js';
+import { runSeed } from './services/seed.service.js';
 
 const startServer = async () => {
   await connectDB();
+
+  // Auto-seed initial demo data if database is empty
+  try {
+    const userCount = await User.countDocuments();
+    if (userCount === 0) {
+      console.log('[Seed] Database is currently empty. Running auto-seed for demo profiles and initial sessions...');
+      const seedRes = await runSeed(false);
+      console.log(`[Seed] Auto-seed completed successfully: ${seedRes.counts.users} users, ${seedRes.counts.teachers} teachers, ${seedRes.counts.sessions} sessions created.`);
+    } else {
+      console.log(`[Seed] Database already initialized with ${userCount} users. Auto-seed skipped.`);
+    }
+  } catch (seedErr) {
+    console.warn('[Seed Warning] Auto-seed check encountered an issue (non-fatal):', seedErr);
+  }
 
   const app = createApp();
 
