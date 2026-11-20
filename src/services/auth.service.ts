@@ -59,8 +59,8 @@ export class AuthService {
       const teacher = await Teacher.create({
         fullName: input.fullName,
         email: input.email.toLowerCase(),
-        specialization: 'Full Stack Development',
-        experience: 5,
+        specialization: input.specialization?.trim() || 'Full Stack Development & System Design',
+        experience: input.experience ?? 5,
       });
       linkedTeacherId = teacher._id.toString();
     }

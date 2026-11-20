@@ -13,6 +13,8 @@ export const registerSchema = z.object({
   phone: z.string().trim().min(7, 'Phone number must be at least 7 characters'),
   role: z.enum([ROLES.STUDENT, ROLES.TEACHER, ROLES.ADMIN]).optional().default(ROLES.STUDENT),
   teacherId: z.string().optional(),
+  specialization: z.string().optional(),
+  experience: z.union([z.number(), z.string().regex(/^\d+$/).transform(Number)]).optional(),
 });
 
 export type LoginInput = z.infer<typeof loginSchema>;
