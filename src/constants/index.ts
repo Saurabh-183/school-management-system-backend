@@ -7,9 +7,10 @@ export const SESSION_STATUS = {
 export type SessionStatus = (typeof SESSION_STATUS)[keyof typeof SESSION_STATUS];
 
 export const ROLES = {
-  STUDENT: 'STUDENT',
-  TEACHER: 'TEACHER',
+  SUPER_ADMIN: 'SUPER_ADMIN',
   ADMIN: 'ADMIN',
+  TEACHER: 'TEACHER',
+  STUDENT: 'STUDENT',
 } as const;
 
 export type Role = (typeof ROLES)[keyof typeof ROLES];

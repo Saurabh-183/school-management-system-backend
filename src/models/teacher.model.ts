@@ -5,6 +5,8 @@ export interface ITeacher extends Document {
   email: string;
   specialization: string;
   experience: number;
+  organization?: string;
+  assignedClasses?: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -34,6 +36,15 @@ const teacherSchema = new Schema<ITeacher>(
       type: Number,
       required: [true, 'Experience in years is required'],
       min: [0, 'Experience cannot be negative'],
+    },
+    organization: {
+      type: String,
+      default: 'Delhi Public School (DPS Campus)',
+      trim: true,
+    },
+    assignedClasses: {
+      type: [String],
+      default: ['Class 11-A', 'Class 12-A'],
     },
   },
   {

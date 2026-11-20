@@ -11,8 +11,11 @@ export const registerSchema = z.object({
   email: z.string().trim().email('Invalid email address format'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   phone: z.string().trim().min(7, 'Phone number must be at least 7 characters'),
-  role: z.enum([ROLES.STUDENT, ROLES.TEACHER, ROLES.ADMIN]).optional().default(ROLES.STUDENT),
+  // Public self-registration only allows STUDENT or TEACHER. ADMIN and SUPER_ADMIN cannot be self-registered!
+  role: z.enum([ROLES.STUDENT, ROLES.TEACHER]).optional().default(ROLES.STUDENT),
   teacherId: z.string().optional(),
+  organization: z.string().optional(),
+  classGrade: z.string().optional(),
   specialization: z.string().optional(),
   experience: z.union([z.number(), z.string().regex(/^\d+$/).transform(Number)]).optional(),
 });

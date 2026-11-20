@@ -44,14 +44,21 @@ export class AuthService {
   }
 
   /**
-   * User Registration with RBAC
+   * User Registration (Public self-registration for Students and Teachers only)
    */
   static async register(input: RegisterInput) {
+    if ((input.role as string) === ROLES.ADMIN || (input.role as string) === ROLES.SUPER_ADMIN) {
+      throw AppError.forbidden(
+        'Forbidden: Administrative accounts cannot be self-registered. Only Super Admins can provision organization administrators.'
+      );
+    }
+
     const existingUser = await User.findOne({ email: input.email.toLowerCase() });
     if (existingUser) {
       throw AppError.conflict(`User with email '${input.email}' already exists`);
     }
 
+    const orgName = input.organization?.trim() || 'Delhi Public School (DPS Campus)';
     let linkedTeacherId = input.teacherId || null;
 
     // If registering as a teacher and no teacherId provided, auto-create a Teacher record
@@ -61,6 +68,8 @@ export class AuthService {
         email: input.email.toLowerCase(),
         specialization: input.specialization?.trim() || 'Full Stack Development & System Design',
         experience: input.experience ?? 5,
+        organization: orgName,
+        assignedClasses: ['Class 11-A', 'Class 12-A'],
       });
       linkedTeacherId = teacher._id.toString();
     }
@@ -72,6 +81,8 @@ export class AuthService {
       password: input.password,
       role: input.role || ROLES.STUDENT,
       teacherId: linkedTeacherId,
+      organization: orgName,
+      classGrade: input.classGrade?.trim() || 'Class 12-A',
     });
 
     const tokenPayload = {
@@ -93,6 +104,8 @@ export class AuthService {
         phone: newUser.phone,
         role: newUser.role,
         teacherId: newUser.teacherId,
+        organization: newUser.organization,
+        classGrade: newUser.classGrade,
       },
     };
   }

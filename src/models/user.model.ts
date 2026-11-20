@@ -9,6 +9,8 @@ export interface IUser extends Document {
   password?: string;
   role: Role;
   teacherId?: Types.ObjectId | null;
+  organization?: string;
+  classGrade?: string;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -46,7 +48,7 @@ const userSchema = new Schema<IUser>(
       type: String,
       enum: {
         values: Object.values(ROLES),
-        message: 'Role must be STUDENT, TEACHER, or ADMIN',
+        message: 'Role must be STUDENT, TEACHER, ADMIN, or SUPER_ADMIN',
       },
       default: ROLES.STUDENT,
       index: true,
@@ -55,6 +57,16 @@ const userSchema = new Schema<IUser>(
       type: Schema.Types.ObjectId,
       ref: 'Teacher',
       default: null,
+    },
+    organization: {
+      type: String,
+      default: 'Delhi Public School (DPS Campus)',
+      trim: true,
+    },
+    classGrade: {
+      type: String,
+      default: 'Class 12-A',
+      trim: true,
     },
   },
   {

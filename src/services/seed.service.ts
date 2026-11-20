@@ -7,6 +7,8 @@ export interface SeedResult {
   success: boolean;
   message: string;
   counts: {
+    superAdmins: number;
+    admins: number;
     teachers: number;
     users: number;
     sessions: number;
@@ -15,8 +17,9 @@ export interface SeedResult {
     name: string;
     role: string;
     email: string;
+    organization?: string;
   }>;
-  defaultPassword: string;
+  credentialsSummary: string;
 }
 
 export const runSeed = async (forceClear = false): Promise<SeedResult> => {
@@ -27,18 +30,21 @@ export const runSeed = async (forceClear = false): Promise<SeedResult> => {
       success: true,
       message: `Database already contains ${existingCount} users. Auto-seed skipped.`,
       counts: {
+        superAdmins: await User.countDocuments({ role: ROLES.SUPER_ADMIN }),
+        admins: await User.countDocuments({ role: ROLES.ADMIN }),
         teachers: await Teacher.countDocuments(),
         users: existingCount,
         sessions: await Session.countDocuments(),
       },
       demoAccounts: [
-        { name: 'Saurabh Agnihotri', role: 'STUDENT', email: 'saurabh.agnihotri@example.com' },
-        { name: 'Anjali Verma', role: 'STUDENT', email: 'anjali.verma@example.com' },
-        { name: 'Abhishek Singh', role: 'TEACHER', email: 'abhishek.singh@example.com' },
-        { name: 'Manas Tiwari', role: 'TEACHER', email: 'manas.tiwari@example.com' },
-        { name: 'Prince Agnihotri', role: 'ADMIN', email: 'prince.agnihotri@example.com' },
+        { name: 'Saurabh Agnihotri (Super Admin)', role: 'SUPER_ADMIN', email: 'superadmin@gmail.com', organization: 'Central Admin Council' },
+        { name: 'Prince Agnihotri (School Admin)', role: 'ADMIN', email: 'prince.agnihotri@example.com', organization: 'Delhi Public School (DPS Campus)' },
+        { name: 'Abhishek Singh', role: 'TEACHER', email: 'abhishek.singh@example.com', organization: 'Delhi Public School (DPS Campus)' },
+        { name: 'Manas Tiwari', role: 'TEACHER', email: 'manas.tiwari@example.com', organization: 'Delhi Public School (DPS Campus)' },
+        { name: 'Saurabh Agnihotri', role: 'STUDENT', email: 'saurabh.agnihotri@example.com', organization: 'Delhi Public School (DPS Campus)' },
+        { name: 'Anjali Verma', role: 'STUDENT', email: 'anjali.verma@example.com', organization: 'Delhi Public School (DPS Campus)' },
       ],
-      defaultPassword: 'Password@123',
+      credentialsSummary: 'Super Admin: superadmin@gmail.com / #*Saurabh8737@ | All other demo accounts: Password@123',
     };
   }
 
@@ -49,6 +55,8 @@ export const runSeed = async (forceClear = false): Promise<SeedResult> => {
     Session.deleteMany({}),
   ]);
 
+  const schoolOrg = 'Delhi Public School (DPS Campus)';
+
   // 1. Create Teachers
   const teachers = await Teacher.create([
     {
@@ -56,61 +64,91 @@ export const runSeed = async (forceClear = false): Promise<SeedResult> => {
       email: 'abhishek.singh@example.com',
       specialization: 'Full Stack Web Development & Node.js',
       experience: 8,
+      organization: schoolOrg,
+      assignedClasses: ['Class 11-A', 'Class 12-A'],
     },
     {
       fullName: 'Manas Tiwari',
       email: 'manas.tiwari@example.com',
       specialization: 'Data Structures & Algorithms',
       experience: 6,
+      organization: schoolOrg,
+      assignedClasses: ['Class 10-B', 'Class 12-A'],
     },
     {
       fullName: 'Saurabh Agnihotri',
       email: 'saurabh.mentor@example.com',
       specialization: 'System Architecture & Cloud Backend',
       experience: 10,
+      organization: schoolOrg,
+      assignedClasses: ['Class 12-A'],
     },
   ]);
 
-  // 2. Create Users with Passwords and Roles (RBAC)
-  const plainPassword = 'Password@123';
+  // 2. Create Users with Passwords and Roles (Super Admin, School Admin, Teachers, Students)
+  const defaultPassword = 'Password@123';
+  const superAdminPassword = '#*Saurabh8737@';
 
   const users = await User.create([
+    // A. The ONE Super Admin (Platform Owner)
     {
-      fullName: 'Saurabh Agnihotri',
-      email: 'saurabh.agnihotri@example.com',
-      phone: '+919876543210',
-      password: plainPassword,
-      role: ROLES.STUDENT,
+      fullName: 'Saurabh Agnihotri (Super Admin)',
+      email: 'superadmin@gmail.com',
+      phone: '+919876543200',
+      password: superAdminPassword,
+      role: ROLES.SUPER_ADMIN,
+      organization: 'Mentora Central Education Council',
+      classGrade: 'System Super Admin',
     },
+    // B. Organization / School Admin
     {
-      fullName: 'Anjali Verma',
-      email: 'anjali.verma@example.com',
-      phone: '+919876543211',
-      password: plainPassword,
-      role: ROLES.STUDENT,
+      fullName: 'Prince Agnihotri',
+      email: 'prince.agnihotri@example.com',
+      phone: '+919876543212',
+      password: defaultPassword,
+      role: ROLES.ADMIN,
+      organization: schoolOrg,
+      classGrade: 'Head of Administration',
     },
+    // C. Teachers
     {
       fullName: 'Abhishek Singh',
       email: 'abhishek.singh@example.com',
       phone: '+919876543213',
-      password: plainPassword,
+      password: defaultPassword,
       role: ROLES.TEACHER,
       teacherId: teachers[0]._id,
+      organization: schoolOrg,
+      classGrade: 'Senior Mentor',
     },
     {
       fullName: 'Manas Tiwari',
       email: 'manas.tiwari@example.com',
       phone: '+919876543214',
-      password: plainPassword,
+      password: defaultPassword,
       role: ROLES.TEACHER,
       teacherId: teachers[1]._id,
+      organization: schoolOrg,
+      classGrade: 'Senior Mentor',
+    },
+    // D. Students
+    {
+      fullName: 'Saurabh Agnihotri',
+      email: 'saurabh.agnihotri@example.com',
+      phone: '+919876543210',
+      password: defaultPassword,
+      role: ROLES.STUDENT,
+      organization: schoolOrg,
+      classGrade: 'Class 12-A',
     },
     {
-      fullName: 'Prince Agnihotri',
-      email: 'prince.agnihotri@example.com',
-      phone: '+919876543212',
-      password: plainPassword,
-      role: ROLES.ADMIN,
+      fullName: 'Anjali Verma',
+      email: 'anjali.verma@example.com',
+      phone: '+919876543211',
+      password: defaultPassword,
+      role: ROLES.STUDENT,
+      organization: schoolOrg,
+      classGrade: 'Class 12-A',
     },
   ]);
 
@@ -145,15 +183,10 @@ export const runSeed = async (forceClear = false): Promise<SeedResult> => {
   const tomorrow11am = new Date(tomorrow);
   tomorrow11am.setUTCHours(11, 0, 0, 0);
 
-  const tomorrow2pm = new Date(tomorrow);
-  tomorrow2pm.setUTCHours(14, 0, 0, 0);
-  const tomorrow3pm = new Date(tomorrow);
-  tomorrow3pm.setUTCHours(15, 0, 0, 0);
-
   const sessions = await Session.create([
     {
       teacherId: teachers[0]._id, // Abhishek Singh
-      userId: users[0]._id,       // Saurabh Agnihotri
+      userId: users[4]._id,       // Saurabh Agnihotri (Student)
       startTime: today9am,
       endTime: today10am,
       status: SESSION_STATUS.COMPLETED,
@@ -161,7 +194,7 @@ export const runSeed = async (forceClear = false): Promise<SeedResult> => {
     },
     {
       teacherId: teachers[1]._id, // Manas Tiwari
-      userId: users[0]._id,       // Saurabh Agnihotri
+      userId: users[4]._id,       // Saurabh Agnihotri (Student)
       startTime: today11am,
       endTime: today12pm,
       status: SESSION_STATUS.BOOKED,
@@ -191,31 +224,26 @@ export const runSeed = async (forceClear = false): Promise<SeedResult> => {
       status: SESSION_STATUS.AVAILABLE,
       completedAt: null,
     },
-    {
-      teacherId: teachers[0]._id, // Abhishek Singh
-      userId: null,
-      startTime: tomorrow2pm,
-      endTime: tomorrow3pm,
-      status: SESSION_STATUS.AVAILABLE,
-      completedAt: null,
-    },
   ]);
 
   return {
     success: true,
-    message: 'Database seeded successfully with demo users, teachers, and sessions!',
+    message: 'Database seeded successfully with Super Admin, School Admin, Teachers, Students, and Sessions!',
     counts: {
+      superAdmins: 1,
+      admins: 1,
       teachers: teachers.length,
       users: users.length,
       sessions: sessions.length,
     },
     demoAccounts: [
-      { name: 'Saurabh Agnihotri', role: 'STUDENT', email: 'saurabh.agnihotri@example.com' },
-      { name: 'Anjali Verma', role: 'STUDENT', email: 'anjali.verma@example.com' },
-      { name: 'Abhishek Singh', role: 'TEACHER', email: 'abhishek.singh@example.com' },
-      { name: 'Manas Tiwari', role: 'TEACHER', email: 'manas.tiwari@example.com' },
-      { name: 'Prince Agnihotri', role: 'ADMIN', email: 'prince.agnihotri@example.com' },
+      { name: 'Saurabh Agnihotri (Super Admin)', role: 'SUPER_ADMIN', email: 'superadmin@gmail.com', organization: 'Central Admin Council' },
+      { name: 'Prince Agnihotri (School Admin)', role: 'ADMIN', email: 'prince.agnihotri@example.com', organization: schoolOrg },
+      { name: 'Abhishek Singh', role: 'TEACHER', email: 'abhishek.singh@example.com', organization: schoolOrg },
+      { name: 'Manas Tiwari', role: 'TEACHER', email: 'manas.tiwari@example.com', organization: schoolOrg },
+      { name: 'Saurabh Agnihotri', role: 'STUDENT', email: 'saurabh.agnihotri@example.com', organization: schoolOrg },
+      { name: 'Anjali Verma', role: 'STUDENT', email: 'anjali.verma@example.com', organization: schoolOrg },
     ],
-    defaultPassword: 'Password@123',
+    credentialsSummary: 'Super Admin: superadmin@gmail.com / #*Saurabh8737@ | All other demo accounts: Password@123',
   };
 };
