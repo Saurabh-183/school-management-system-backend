@@ -390,7 +390,7 @@ export const runSeed = async (forceClear = false): Promise<SeedResult> => {
       documents: [
         {
           title: 'Dynamic_Programming_Formula_Cheatsheet.pdf',
-          fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+          fileUrl: 'https://arxiv.org/pdf/math/0211159.pdf',
           fileType: 'PDF',
           fileSize: '1.9 MB',
           uploadedAt: new Date(today2pm),

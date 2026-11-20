@@ -87,11 +87,13 @@ export class UserService {
     }
 
     if (filterUser.role === ROLES.TEACHER) {
-      return await User.find({
-        $or: [
-          { createdBy: new Types.ObjectId(filterUser.userId) },
-        ],
-      }).sort({ createdAt: -1 });
+      const orConditions: any[] = [
+        { createdBy: new Types.ObjectId(filterUser.userId) },
+      ];
+      if (filterUser.organization) {
+        orConditions.push({ organization: filterUser.organization, role: ROLES.STUDENT });
+      }
+      return await User.find({ $or: orConditions }).sort({ createdAt: -1 });
     }
 
     return await User.find({ _id: new Types.ObjectId(filterUser.userId) });
