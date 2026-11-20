@@ -1,5 +1,16 @@
 import mongoose from 'mongoose';
+import dns from 'node:dns';
 import { config } from './env.js';
+
+// If SRV lookup fails on local router DNS (common on Windows with MongoDB Atlas), fallback to Google & Cloudflare DNS
+if (config.mongoUri.startsWith('mongodb+srv://')) {
+  try {
+    dns.setDefaultResultOrder('ipv4first');
+    dns.setServers(['8.8.8.8', '1.1.1.1', '8.8.4.4']);
+  } catch (dnsErr) {
+    console.warn('[DNS Warning] Unable to set custom DNS servers:', dnsErr);
+  }
+}
 
 export const connectDB = async (): Promise<typeof mongoose> => {
   if (config.nodeEnv === 'production' && (config.mongoUri.includes('127.0.0.1') || config.mongoUri.includes('localhost'))) {
