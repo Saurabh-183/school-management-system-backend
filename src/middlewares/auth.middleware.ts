@@ -47,7 +47,7 @@ export const authenticateUser = async (req: Request, _res: Response, next: NextF
   }
 };
 
-export const optionalAuth = (req: Request, _res: Response, next: NextFunction) => {
+export const optionalAuth = async (req: Request, _res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return next();
@@ -56,6 +56,18 @@ export const optionalAuth = (req: Request, _res: Response, next: NextFunction) =
   const token = authHeader.split(' ')[1];
   try {
     const decoded = verifyAccessToken(token);
+    // Enforce single active session even in optionalAuth if a token was supplied
+    if (decoded.sessionId) {
+      const dbUser = await User.findById(decoded.userId).select('currentSessionId');
+      if (dbUser && dbUser.currentSessionId && dbUser.currentSessionId !== decoded.sessionId) {
+        return next(
+          new AppError(
+            'Session Terminated: This account has been logged in from another location/device. Concurrent sessions are disabled for security.',
+            401
+          )
+        );
+      }
+    }
     req.user = decoded;
   } catch {
     // Ignore invalid token in optionalAuth
