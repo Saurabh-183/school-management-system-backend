@@ -5,6 +5,26 @@ A robust, production-ready Full Stack application built strictly with **Node.js,
 
 ---
 
+### 📄 Official Assignment Submission Documentation
+- **Formal 6-Page Technical Verification PDF**: [`Backend_Developer_Assignment_Documentation.pdf`](./Backend_Developer_Assignment_Documentation.pdf)
+- **Live Cloud Frontend (Vercel)**: [https://school-management-system-frontend-flame.vercel.app](https://school-management-system-frontend-flame.vercel.app)
+- **Live Cloud Backend (Render)**: [https://school-management-system-backend-3rco.onrender.com](https://school-management-system-backend-3rco.onrender.com)
+- **Interactive Swagger OpenAPI Docs**: [https://school-management-system-backend-3rco.onrender.com/api-docs](https://school-management-system-backend-3rco.onrender.com/api-docs)
+
+---
+
+### 🔑 Pre-Seeded Testing Credentials (Assignment Specific Roles)
+| Role | Full Name | Login Email | Password | Primary Scope & Permissions |
+| :--- | :--- | :--- | :--- | :--- |
+| **TEACHER** | Manas Tiwari | `manas.tiwari@example.com` | `Password@123` | Publish available slots (API 2), view mentor schedule, mark complete (API 5) |
+| **TEACHER** | Abhishek Singh | `abhishek.singh@example.com` | `Password@123` | Publish available slots (API 2), upload lectures/notes, mark complete (API 5) |
+| **STUDENT** | Saurabh Agnihotri | `saurabh.agnihotri@example.com` | `Password@123` | Discover slots by date (API 3), book session (API 4), view history (API 6) |
+| **STUDENT** | Anjali Verma | `anjali.verma@example.com` | `Password@123` | Discover slots by date (API 3), book session (API 4), view history (API 6) |
+
+*(Note: Administrative and super-admin credentials are intentionally omitted per assignment testing instructions.)*
+
+---
+
 ## 📑 Table of Contents
 1. [Tech Stack](#-tech-stack)
 2. [Project Architecture](#-project-architecture)
