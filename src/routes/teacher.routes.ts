@@ -25,7 +25,7 @@ router.post(
 );
 
 // Get all teachers
-router.get('/', TeacherController.getAllTeachers);
+router.get('/', optionalAuth, TeacherController.getAllTeachers);
 
 // Get teacher by ID
 router.get('/:id', validateRequest({ params: teacherIdParamSchema }), TeacherController.getTeacherById);

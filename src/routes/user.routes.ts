@@ -33,7 +33,7 @@ router.get(
 );
 
 // Helper endpoints
-router.get('/', UserController.getAllUsers);
+router.get('/', optionalAuth, UserController.getAllUsers);
 router.get('/:id', validateRequest({ params: userIdParamSchema }), UserController.getUserById);
 
 export default router;

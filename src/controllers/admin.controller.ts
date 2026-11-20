@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { Types } from 'mongoose';
 import { User } from '../models/user.model.js';
 import { Teacher } from '../models/teacher.model.js';
 import { Session } from '../models/session.model.js';
@@ -6,6 +7,7 @@ import { ApiResponse } from '../utils/api-response.js';
 import { HTTP_STATUS, SESSION_STATUS, ROLES } from '../constants/index.js';
 import { asyncHandler } from '../utils/async-handler.js';
 import { AppError } from '../errors/app-error.js';
+import { EmailService } from '../services/email.service.js';
 
 export class AdminController {
   /**
@@ -74,15 +76,34 @@ export class AdminController {
       throw AppError.conflict(`User with email '${email}' already exists`);
     }
 
+    const creatorUser = req.user?.userId ? await User.findById(req.user.userId) : null;
+
     const newAdmin = await User.create({
       fullName: fullName.trim(),
       email: email.toLowerCase().trim(),
       phone: phone?.trim() || '+919876543200',
       password: password,
+      plainPassword: password,
       role: ROLES.ADMIN,
       organization: organization.trim(),
       classGrade: 'School Administrator',
+      createdBy: req.user?.userId ? new Types.ObjectId(req.user.userId) : null,
+      createdByName: creatorUser?.fullName || 'Super Admin Platform Owner',
+      createdByRole: ROLES.SUPER_ADMIN,
+      accountStatus: 'ACTIVE',
+      isTrial: false,
     });
+
+    // Send professional onboarding welcome email
+    await EmailService.sendWelcomeEmail({
+      fullName: newAdmin.fullName,
+      email: newAdmin.email,
+      phone: newAdmin.phone,
+      role: ROLES.ADMIN,
+      organization: newAdmin.organization || organization || 'General Organization',
+      temporaryPassword: password,
+      isTrial: false,
+    }).catch((err) => console.error('Failed to send admin welcome email:', err));
 
     res.status(HTTP_STATUS.CREATED).json(
       ApiResponse.success(`Admin '${newAdmin.fullName}' provisioned for organization '${organization}'`, {
@@ -92,7 +113,235 @@ export class AdminController {
         phone: newAdmin.phone,
         role: newAdmin.role,
         organization: newAdmin.organization,
+        plainPassword: newAdmin.plainPassword,
         createdAt: newAdmin.createdAt,
+      })
+    );
+  });
+
+  /**
+   * Admin / Super Admin: Create a Teacher under their facility
+   */
+  static createTeacher = asyncHandler(async (req: Request, res: Response) => {
+    const { fullName, email, phone, password, specialization, experienceYears, assignedClasses, organization } = req.body;
+
+    if (!fullName || !email || !password) {
+      throw AppError.badRequest('Full name, email, and password are required');
+    }
+
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    if (existingUser) {
+      throw AppError.conflict(`User with email '${email}' already exists`);
+    }
+
+    const creatorUser = req.user?.userId ? await User.findById(req.user.userId) : null;
+    const org = organization?.trim() || creatorUser?.organization || 'Delhi Public School (DPS Campus)';
+
+    // 1. Create Teacher profile
+    const teacherProfile = await Teacher.create({
+      fullName: fullName.trim(),
+      email: email.toLowerCase().trim(),
+      phone: phone?.trim() || '+919876543210',
+      specialization: specialization?.trim() || 'General Studies & Science',
+      experience: Number(experienceYears) || 5,
+      organization: org,
+      assignedClasses: Array.isArray(assignedClasses) && assignedClasses.length > 0 ? assignedClasses : ['Class 10-A', 'Class 12-A'],
+      createdBy: req.user?.userId ? new Types.ObjectId(req.user.userId) : null,
+      createdByName: creatorUser?.fullName || 'School Administration',
+    });
+
+    // 2. Create User account for authentication
+    const newUser = await User.create({
+      fullName: fullName.trim(),
+      email: email.toLowerCase().trim(),
+      phone: phone?.trim() || '+919876543210',
+      password: password,
+      plainPassword: password,
+      role: ROLES.TEACHER,
+      teacherId: teacherProfile._id,
+      organization: org,
+      classGrade: 'Faculty Instructor',
+      createdBy: req.user?.userId ? new Types.ObjectId(req.user.userId) : null,
+      createdByName: creatorUser?.fullName || 'School Administration',
+      createdByRole: creatorUser?.role || ROLES.ADMIN,
+      accountStatus: 'ACTIVE',
+      isTrial: false,
+    });
+
+    // Send professional onboarding welcome email
+    await EmailService.sendWelcomeEmail({
+      fullName: newUser.fullName,
+      email: newUser.email,
+      phone: newUser.phone,
+      role: ROLES.TEACHER,
+      organization: newUser.organization || org || 'General Organization',
+      temporaryPassword: password,
+      isTrial: false,
+    }).catch((err) => console.error('Failed to send teacher welcome email:', err));
+
+    res.status(HTTP_STATUS.CREATED).json(
+      ApiResponse.success(`Teacher '${newUser.fullName}' created successfully under facility '${org}'`, {
+        _id: newUser._id,
+        teacherId: teacherProfile._id,
+        fullName: newUser.fullName,
+        email: newUser.email,
+        phone: newUser.phone,
+        role: newUser.role,
+        organization: newUser.organization,
+        plainPassword: newUser.plainPassword,
+        createdBy: newUser.createdBy,
+        createdByName: newUser.createdByName,
+        createdAt: newUser.createdAt,
+      })
+    );
+  });
+
+  /**
+   * Teacher / Admin / Super Admin: Create an enrolled Student under their facility/class
+   */
+  static createStudent = asyncHandler(async (req: Request, res: Response) => {
+    const { fullName, email, phone, password, classGrade, organization } = req.body;
+
+    if (!fullName || !email || !password) {
+      throw AppError.badRequest('Full name, email, and password are required');
+    }
+
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    if (existingUser) {
+      throw AppError.conflict(`User with email '${email}' already exists`);
+    }
+
+    const creatorUser = req.user?.userId ? await User.findById(req.user.userId) : null;
+    const org = organization?.trim() || creatorUser?.organization || 'Delhi Public School (DPS Campus)';
+    const grade = classGrade?.trim() || 'Class 12-A';
+
+    const newUser = await User.create({
+      fullName: fullName.trim(),
+      email: email.toLowerCase().trim(),
+      phone: phone?.trim() || '+919876543210',
+      password: password,
+      plainPassword: password,
+      role: ROLES.STUDENT,
+      organization: org,
+      classGrade: grade,
+      createdBy: req.user?.userId ? new Types.ObjectId(req.user.userId) : null,
+      createdByName: creatorUser?.fullName || 'Faculty Mentor',
+      createdByRole: creatorUser?.role || ROLES.TEACHER,
+      accountStatus: 'ACTIVE',
+      isTrial: false,
+    });
+
+    // Send professional onboarding welcome email
+    await EmailService.sendWelcomeEmail({
+      fullName: newUser.fullName,
+      email: newUser.email,
+      phone: newUser.phone,
+      role: ROLES.STUDENT,
+      organization: newUser.organization || org || 'General Organization',
+      classGrade: grade,
+      temporaryPassword: password,
+      isTrial: false,
+    }).catch((err) => console.error('Failed to send student welcome email:', err));
+
+    res.status(HTTP_STATUS.CREATED).json(
+      ApiResponse.success(`Enrolled student '${newUser.fullName}' created under ${creatorUser?.fullName || 'Faculty'}`, {
+        _id: newUser._id,
+        fullName: newUser.fullName,
+        email: newUser.email,
+        phone: newUser.phone,
+        role: newUser.role,
+        organization: newUser.organization,
+        classGrade: newUser.classGrade,
+        plainPassword: newUser.plainPassword,
+        createdBy: newUser.createdBy,
+        createdByName: newUser.createdByName,
+        createdAt: newUser.createdAt,
+      })
+    );
+  });
+
+  /**
+   * Super Admin Activity Logs Module:
+   * View all accounts with passwords (for direct verification/support), online/offline status,
+   * login/logout/active timestamps, trial status (including remaining time or expired/deleted),
+   * and allow one-click direct login without logging activity.
+   */
+  static getActivityLogs = asyncHandler(async (req: Request, res: Response) => {
+    const { status, search } = req.query;
+
+    const query: Record<string, any> = {};
+
+    if (status === 'online') {
+      query.isOnline = true;
+    } else if (status === 'trial') {
+      query.isTrial = true;
+    } else if (status === 'deleted' || status === 'expired') {
+      query.accountStatus = { $in: ['DELETED', 'EXPIRED'] };
+    } else if (status === 'active') {
+      query.accountStatus = 'ACTIVE';
+    }
+
+    if (search && typeof search === 'string') {
+      const regex = new RegExp(search.trim(), 'i');
+      query.$or = [
+        { fullName: regex },
+        { email: regex },
+        { phone: regex },
+        { organization: regex },
+        { classGrade: regex },
+      ];
+    }
+
+    const allUsers = await User.find(query).sort({ createdAt: -1 });
+
+    const totalAccounts = await User.countDocuments();
+    const onlineAccounts = await User.countDocuments({ isOnline: true });
+    const trialAccounts = await User.countDocuments({ isTrial: true });
+    const deletedOrExpiredAccounts = await User.countDocuments({ accountStatus: { $in: ['DELETED', 'EXPIRED'] } });
+    const activeAccounts = await User.countDocuments({ accountStatus: 'ACTIVE' });
+
+    const logs = allUsers.map((u) => {
+      // Calculate remaining trial time if trial user
+      let trialRemainingHours: number | null = null;
+      if (u.isTrial && u.trialExpiresAt) {
+        const diff = new Date(u.trialExpiresAt).getTime() - Date.now();
+        trialRemainingHours = diff > 0 ? Math.round((diff / (1000 * 3600)) * 10) / 10 : 0;
+      }
+
+      return {
+        _id: u._id,
+        fullName: u.fullName,
+        email: u.email,
+        phone: u.phone,
+        role: u.role,
+        organization: u.organization || 'General Organization',
+        classGrade: u.classGrade || 'N/A',
+        plainPassword: u.plainPassword || 'Password@123',
+        isTrial: Boolean(u.isTrial),
+        trialExpiresAt: u.trialExpiresAt,
+        trialRemainingHours,
+        accountStatus: u.accountStatus || 'ACTIVE',
+        isOnline: Boolean(u.isOnline),
+        lastLoginAt: u.lastLoginAt,
+        lastLogoutAt: u.lastLogoutAt,
+        lastActiveAt: u.lastActiveAt,
+        createdBy: u.createdBy,
+        createdByName: u.createdByName || 'Direct / System',
+        createdByRole: u.createdByRole || 'SYSTEM',
+        createdAt: u.createdAt,
+      };
+    });
+
+    res.status(HTTP_STATUS.OK).json(
+      ApiResponse.success('Super Admin platform activity logs retrieved', {
+        metrics: {
+          totalAccounts,
+          onlineAccounts,
+          trialAccounts,
+          deletedOrExpiredAccounts,
+          activeAccounts,
+        },
+        logs,
       })
     );
   });

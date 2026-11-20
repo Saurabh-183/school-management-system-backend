@@ -17,4 +17,13 @@ router.post('/create-admin', authenticateUser, requireRole(ROLES.SUPER_ADMIN), A
 // School / Organization Admin Overview (RBAC: ADMIN, SUPER_ADMIN)
 router.get('/school-overview', authenticateUser, requireRole(ROLES.ADMIN, ROLES.SUPER_ADMIN), AdminController.getSchoolOverview);
 
+// Super Admin Activity Logs (RBAC: SUPER_ADMIN only)
+router.get('/activity-logs', authenticateUser, requireRole(ROLES.SUPER_ADMIN), AdminController.getActivityLogs);
+
+// School Admin creates Teacher under their facility (RBAC: ADMIN, SUPER_ADMIN)
+router.post('/create-teacher', authenticateUser, requireRole(ROLES.ADMIN, ROLES.SUPER_ADMIN), AdminController.createTeacher);
+
+// Teacher or Admin creates Student under their class/facility (RBAC: TEACHER, ADMIN, SUPER_ADMIN)
+router.post('/create-student', authenticateUser, requireRole(ROLES.TEACHER, ROLES.ADMIN, ROLES.SUPER_ADMIN), AdminController.createStudent);
+
 export default router;

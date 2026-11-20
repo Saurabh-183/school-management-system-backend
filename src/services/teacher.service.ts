@@ -3,7 +3,7 @@ import { Teacher, ITeacher } from '../models/teacher.model.js';
 import { Session } from '../models/session.model.js';
 import { CreateTeacherInput } from '../schemas/teacher.schema.js';
 import { AppError } from '../errors/app-error.js';
-import { SESSION_STATUS } from '../constants/index.js';
+import { SESSION_STATUS, ROLES } from '../constants/index.js';
 
 export class TeacherService {
   static async createTeacher(data: CreateTeacherInput): Promise<ITeacher> {
@@ -22,7 +22,15 @@ export class TeacherService {
     return teacher;
   }
 
-  static async getAllTeachers(): Promise<ITeacher[]> {
+  static async getAllTeachers(filter?: { organization?: string; createdBy?: string; role?: string }): Promise<ITeacher[]> {
+    if (filter && filter.role === ROLES.ADMIN && filter.organization) {
+      return await Teacher.find({
+        $or: [
+          { organization: filter.organization },
+          ...(filter.createdBy ? [{ createdBy: new Types.ObjectId(filter.createdBy) }] : []),
+        ],
+      }).sort({ createdAt: -1 });
+    }
     return await Teacher.find().sort({ createdAt: -1 });
   }
 

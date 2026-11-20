@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { UserService } from '../services/user.service.js';
+import { User } from '../models/user.model.js';
 import { ApiResponse } from '../utils/api-response.js';
 import { HTTP_STATUS } from '../constants/index.js';
 import { asyncHandler } from '../utils/async-handler.js';
@@ -11,7 +12,18 @@ export class UserController {
    * POST /users
    */
   static createUser = asyncHandler(async (req: Request, res: Response) => {
-    const user = await UserService.createUser(req.body);
+    let creatorInfo;
+    if (req.user) {
+      const creatorDoc = await User.findById(req.user.userId);
+      creatorInfo = {
+        userId: req.user.userId,
+        fullName: req.user.fullName,
+        role: req.user.role,
+        organization: creatorDoc?.organization,
+      };
+    }
+
+    const user = await UserService.createUser(req.body, creatorInfo);
     res.status(HTTP_STATUS.CREATED).json(
       ApiResponse.success('User created successfully', user)
     );
@@ -30,11 +42,20 @@ export class UserController {
   });
 
   /**
-   * Helper: Get All Users
+   * Helper: Get All Users with hierarchical RBAC creator isolation
    * GET /users
    */
-  static getAllUsers = asyncHandler(async (_req: Request, res: Response) => {
-    const users = await UserService.getAllUsers();
+  static getAllUsers = asyncHandler(async (req: Request, res: Response) => {
+    let filterUser;
+    if (req.user) {
+      const uDoc = await User.findById(req.user.userId);
+      filterUser = {
+        userId: req.user.userId,
+        role: req.user.role,
+        organization: uDoc?.organization,
+      };
+    }
+    const users = await UserService.getAllUsers(filterUser);
     res.status(HTTP_STATUS.OK).json(
       ApiResponse.success('Users retrieved successfully', users)
     );

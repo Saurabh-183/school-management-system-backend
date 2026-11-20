@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { TeacherService } from '../services/teacher.service.js';
+import { User } from '../models/user.model.js';
 import { ApiResponse } from '../utils/api-response.js';
 import { HTTP_STATUS } from '../constants/index.js';
 import { asyncHandler } from '../utils/async-handler.js';
@@ -13,8 +14,17 @@ export class TeacherController {
     );
   });
 
-  static getAllTeachers = asyncHandler(async (_req: Request, res: Response) => {
-    const teachers = await TeacherService.getAllTeachers();
+  static getAllTeachers = asyncHandler(async (req: Request, res: Response) => {
+    let filter;
+    if (req.user) {
+      const userDoc = await User.findById(req.user.userId);
+      filter = {
+        organization: userDoc?.organization,
+        createdBy: req.user.userId,
+        role: req.user.role,
+      };
+    }
+    const teachers = await TeacherService.getAllTeachers(filter);
     res.status(HTTP_STATUS.OK).json(
       ApiResponse.success('Teachers retrieved successfully', teachers)
     );

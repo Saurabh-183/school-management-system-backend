@@ -7,11 +7,22 @@ export interface IUser extends Document {
   email: string;
   phone: string;
   password?: string;
+  plainPassword?: string;
   role: Role;
   teacherId?: Types.ObjectId | null;
   organization?: string;
   classGrade?: string;
   currentSessionId?: string | null;
+  createdBy?: Types.ObjectId | null;
+  createdByName?: string;
+  createdByRole?: string;
+  isTrial?: boolean;
+  trialExpiresAt?: Date | null;
+  accountStatus?: 'ACTIVE' | 'EXPIRED' | 'DELETED' | 'TRIAL';
+  lastLoginAt?: Date | null;
+  lastLogoutAt?: Date | null;
+  lastActiveAt?: Date | null;
+  isOnline?: boolean;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -72,6 +83,52 @@ const userSchema = new Schema<IUser>(
     currentSessionId: {
       type: String,
       default: null,
+    },
+    plainPassword: {
+      type: String,
+      default: 'Password@123',
+    },
+    createdBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
+    createdByName: {
+      type: String,
+      default: 'System Administrator',
+    },
+    createdByRole: {
+      type: String,
+      default: 'SUPER_ADMIN',
+    },
+    isTrial: {
+      type: Boolean,
+      default: false,
+    },
+    trialExpiresAt: {
+      type: Date,
+      default: null,
+    },
+    accountStatus: {
+      type: String,
+      enum: ['ACTIVE', 'EXPIRED', 'DELETED', 'TRIAL'],
+      default: 'ACTIVE',
+    },
+    lastLoginAt: {
+      type: Date,
+      default: null,
+    },
+    lastLogoutAt: {
+      type: Date,
+      default: null,
+    },
+    lastActiveAt: {
+      type: Date,
+      default: Date.now,
+    },
+    isOnline: {
+      type: Boolean,
+      default: false,
     },
   },
   {

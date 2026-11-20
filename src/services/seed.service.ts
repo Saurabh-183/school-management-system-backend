@@ -85,72 +85,183 @@ export const runSeed = async (forceClear = false): Promise<SeedResult> => {
     },
   ]);
 
-  // 2. Create Users with Passwords and Roles (Super Admin, School Admin, Teachers, Students)
+  // 2. Create Users with Passwords, plainPasswords, Creator Hierarchy and Statuses
   const defaultPassword = 'Password@123';
   const superAdminPassword = '#*Saurabh8737@';
 
-  const users = await User.create([
-    // A. The ONE Super Admin (Platform Owner)
-    {
-      fullName: 'Saurabh Agnihotri (Super Admin)',
-      email: 'superadmin@gmail.com',
-      phone: '+919876543200',
-      password: superAdminPassword,
-      role: ROLES.SUPER_ADMIN,
-      organization: 'Mentora Central Education Council',
-      classGrade: 'System Super Admin',
-    },
-    // B. Organization / School Admin
-    {
-      fullName: 'Prince Agnihotri',
-      email: 'prince.agnihotri@example.com',
-      phone: '+919876543212',
-      password: defaultPassword,
-      role: ROLES.ADMIN,
-      organization: schoolOrg,
-      classGrade: 'Head of Administration',
-    },
-    // C. Teachers
-    {
-      fullName: 'Abhishek Singh',
-      email: 'abhishek.singh@example.com',
-      phone: '+919876543213',
-      password: defaultPassword,
-      role: ROLES.TEACHER,
-      teacherId: teachers[0]._id,
-      organization: schoolOrg,
-      classGrade: 'Senior Mentor',
-    },
-    {
-      fullName: 'Manas Tiwari',
-      email: 'manas.tiwari@example.com',
-      phone: '+919876543214',
-      password: defaultPassword,
-      role: ROLES.TEACHER,
-      teacherId: teachers[1]._id,
-      organization: schoolOrg,
-      classGrade: 'Senior Mentor',
-    },
-    // D. Students
-    {
-      fullName: 'Saurabh Agnihotri',
-      email: 'saurabh.agnihotri@example.com',
-      phone: '+919876543210',
-      password: defaultPassword,
-      role: ROLES.STUDENT,
-      organization: schoolOrg,
-      classGrade: 'Class 12-A',
-    },
-    {
-      fullName: 'Anjali Verma',
-      email: 'anjali.verma@example.com',
-      phone: '+919876543211',
-      password: defaultPassword,
-      role: ROLES.STUDENT,
-      organization: schoolOrg,
-      classGrade: 'Class 12-A',
-    },
-  ]);
+  // A. Super Admin
+  const superAdminUser = await User.create({
+    fullName: 'Saurabh Agnihotri (Super Admin)',
+    email: 'superadmin@gmail.com',
+    phone: '+919876543200',
+    password: superAdminPassword,
+    plainPassword: superAdminPassword,
+    role: ROLES.SUPER_ADMIN,
+    organization: 'Mentora Central Education Council',
+    classGrade: 'System Super Admin',
+    accountStatus: 'ACTIVE',
+    isTrial: false,
+    isOnline: true,
+    lastLoginAt: new Date(),
+    lastActiveAt: new Date(),
+    createdByName: 'Root System Initializer',
+    createdByRole: 'ROOT',
+  });
+
+  // B. School Admin (Created by Super Admin)
+  const schoolAdminUser = await User.create({
+    fullName: 'Prince Agnihotri',
+    email: 'prince.agnihotri@example.com',
+    phone: '+919876543212',
+    password: defaultPassword,
+    plainPassword: defaultPassword,
+    role: ROLES.ADMIN,
+    organization: schoolOrg,
+    classGrade: 'Head of Administration',
+    accountStatus: 'ACTIVE',
+    isTrial: false,
+    isOnline: false,
+    lastLoginAt: new Date(Date.now() - 3600000 * 3),
+    lastLogoutAt: new Date(Date.now() - 3600000 * 2),
+    lastActiveAt: new Date(Date.now() - 3600000 * 2),
+    createdBy: superAdminUser._id,
+    createdByName: superAdminUser.fullName,
+    createdByRole: ROLES.SUPER_ADMIN,
+  });
+
+  // C. Teachers (Created by School Admin)
+  const teacherUser1 = await User.create({
+    fullName: 'Abhishek Singh',
+    email: 'abhishek.singh@example.com',
+    phone: '+919876543213',
+    password: defaultPassword,
+    plainPassword: defaultPassword,
+    role: ROLES.TEACHER,
+    teacherId: teachers[0]._id,
+    organization: schoolOrg,
+    classGrade: 'Senior Mentor',
+    accountStatus: 'ACTIVE',
+    isTrial: false,
+    isOnline: false,
+    lastLoginAt: new Date(Date.now() - 3600000 * 5),
+    lastActiveAt: new Date(Date.now() - 3600000 * 4),
+    createdBy: schoolAdminUser._id,
+    createdByName: schoolAdminUser.fullName,
+    createdByRole: ROLES.ADMIN,
+  });
+
+  const teacherUser2 = await User.create({
+    fullName: 'Manas Tiwari',
+    email: 'manas.tiwari@example.com',
+    phone: '+919876543214',
+    password: defaultPassword,
+    plainPassword: defaultPassword,
+    role: ROLES.TEACHER,
+    teacherId: teachers[1]._id,
+    organization: schoolOrg,
+    classGrade: 'Senior Mentor',
+    accountStatus: 'ACTIVE',
+    isTrial: false,
+    isOnline: false,
+    lastLoginAt: new Date(Date.now() - 3600000 * 6),
+    lastActiveAt: new Date(Date.now() - 3600000 * 5),
+    createdBy: schoolAdminUser._id,
+    createdByName: schoolAdminUser.fullName,
+    createdByRole: ROLES.ADMIN,
+  });
+
+  // Link teachers in Teacher collection to their admin creator
+  await Teacher.updateMany({}, { createdBy: schoolAdminUser._id, createdByName: schoolAdminUser.fullName });
+
+  // D. Students (Created by Teacher Abhishek Singh)
+  const studentUser1 = await User.create({
+    fullName: 'Saurabh Agnihotri',
+    email: 'saurabh.agnihotri@example.com',
+    phone: '+919876543210',
+    password: defaultPassword,
+    plainPassword: defaultPassword,
+    role: ROLES.STUDENT,
+    organization: schoolOrg,
+    classGrade: 'Class 12-A',
+    accountStatus: 'ACTIVE',
+    isTrial: false,
+    isOnline: true,
+    lastLoginAt: new Date(Date.now() - 1800000),
+    lastActiveAt: new Date(Date.now() - 300000),
+    createdBy: teacherUser1._id,
+    createdByName: teacherUser1.fullName,
+    createdByRole: ROLES.TEACHER,
+  });
+
+  const studentUser2 = await User.create({
+    fullName: 'Anjali Verma',
+    email: 'anjali.verma@example.com',
+    phone: '+919876543211',
+    password: defaultPassword,
+    plainPassword: defaultPassword,
+    role: ROLES.STUDENT,
+    organization: schoolOrg,
+    classGrade: 'Class 12-A',
+    accountStatus: 'ACTIVE',
+    isTrial: false,
+    isOnline: false,
+    lastLoginAt: new Date(Date.now() - 3600000 * 8),
+    lastActiveAt: new Date(Date.now() - 3600000 * 7),
+    createdBy: teacherUser1._id,
+    createdByName: teacherUser1.fullName,
+    createdByRole: ROLES.TEACHER,
+  });
+
+  // E. Trial Student (Active 72-Hour Web Evaluation)
+  const trialStudent = await User.create({
+    fullName: 'Kavita Sharma',
+    email: 'kavita.sharma@example.com',
+    phone: '+919876543288',
+    password: defaultPassword,
+    plainPassword: defaultPassword,
+    role: ROLES.STUDENT,
+    organization: 'Self-Registered Web Trial',
+    classGrade: 'Class 11-B (Trial)',
+    accountStatus: 'TRIAL',
+    isTrial: true,
+    trialExpiresAt: new Date(Date.now() + 48 * 3600 * 1000), // 48 hours left
+    isOnline: true,
+    lastLoginAt: new Date(Date.now() - 600000),
+    lastActiveAt: new Date(),
+    createdByName: 'Public Web Portal Self-Registration',
+    createdByRole: 'SELF_TRIAL',
+  });
+
+  // F. Expired Trial Student
+  const expiredStudent = await User.create({
+    fullName: 'Rahul Joshi',
+    email: 'rahul.joshi@example.com',
+    phone: '+919876543299',
+    password: defaultPassword,
+    plainPassword: defaultPassword,
+    role: ROLES.STUDENT,
+    organization: 'Self-Registered Web Trial',
+    classGrade: 'Class 10-A (Trial)',
+    accountStatus: 'EXPIRED',
+    isTrial: true,
+    trialExpiresAt: new Date(Date.now() - 2 * 3600 * 1000), // Expired 2 hours ago
+    isOnline: false,
+    lastLoginAt: new Date(Date.now() - 75 * 3600 * 1000),
+    lastLogoutAt: new Date(Date.now() - 74 * 3600 * 1000),
+    createdByName: 'Public Web Portal Self-Registration',
+    createdByRole: 'SELF_TRIAL',
+  });
+
+  const users = [
+    superAdminUser,
+    schoolAdminUser,
+    teacherUser1,
+    teacherUser2,
+    studentUser1,
+    studentUser2,
+    trialStudent,
+    expiredStudent,
+  ];
 
   // 3. Create Sessions for Today & Tomorrow dynamically
   const now = new Date();

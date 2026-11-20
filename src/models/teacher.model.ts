@@ -1,4 +1,4 @@
-import { Schema, model, Document } from 'mongoose';
+import { Schema, model, Document, Types } from 'mongoose';
 
 export interface ITeacher extends Document {
   fullName: string;
@@ -7,6 +7,8 @@ export interface ITeacher extends Document {
   experience: number;
   organization?: string;
   assignedClasses?: string[];
+  createdBy?: Types.ObjectId | null;
+  createdByName?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -45,6 +47,15 @@ const teacherSchema = new Schema<ITeacher>(
     assignedClasses: {
       type: [String],
       default: ['Class 11-A', 'Class 12-A'],
+    },
+    createdBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
+    createdByName: {
+      type: String,
+      default: 'School Admin',
     },
   },
   {
