@@ -322,7 +322,7 @@ export const runSeed = async (forceClear = false): Promise<SeedResult> => {
       documents: [
         {
           title: 'Class_12A_Data_Structures_Lecture_Notes_Unit_3.pdf',
-          fileUrl: 'https://arxiv.org/pdf/math/0211159.pdf',
+          fileUrl: '/docs/Dynamic_Programming_Formula_Cheatsheet.pdf',
           fileType: 'PDF',
           fileSize: '2.8 MB',
           uploadedAt: new Date(today9am),
@@ -356,7 +356,7 @@ export const runSeed = async (forceClear = false): Promise<SeedResult> => {
       documents: [
         {
           title: 'Distributed_Systems_Architecture_Blueprint_v2.pdf',
-          fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+          fileUrl: '/docs/FullStack_NodeJS_Architecture_Handbook.pdf',
           fileType: 'PDF',
           fileSize: '4.1 MB',
           uploadedAt: new Date(today11am),
@@ -390,7 +390,7 @@ export const runSeed = async (forceClear = false): Promise<SeedResult> => {
       documents: [
         {
           title: 'Dynamic_Programming_Formula_Cheatsheet.pdf',
-          fileUrl: 'https://arxiv.org/pdf/math/0211159.pdf',
+          fileUrl: '/docs/Dynamic_Programming_Formula_Cheatsheet.pdf',
           fileType: 'PDF',
           fileSize: '1.9 MB',
           uploadedAt: new Date(today2pm),
@@ -424,7 +424,7 @@ export const runSeed = async (forceClear = false): Promise<SeedResult> => {
       documents: [
         {
           title: 'MongoDB_Query_Optimization_Field_Guide.pdf',
-          fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+          fileUrl: '/docs/MongoDB_Query_Optimization_Field_Guide.pdf',
           fileType: 'PDF',
           fileSize: '3.6 MB',
           uploadedAt: new Date(today4pm),
